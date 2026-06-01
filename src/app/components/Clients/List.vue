@@ -4,10 +4,14 @@
     :key="client.id"
     class="relative overflow-hidden border-b border-solid border-gray-100 last:border-b-0 dark:border-neutral-600"
   >
-    <ClientCard :client="client" />
+    <ClientCard
+      :client="client"
+      :port-forwarding="portForwarding.portForwarding ?? []"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 const clientsStore = useClientsStore();
+const portForwarding = usePortForwardingStore();
 </script>

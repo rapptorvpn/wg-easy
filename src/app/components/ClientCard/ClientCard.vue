@@ -37,7 +37,10 @@
         <ClientCardSwitch :client="client" />
         <ClientCardEdit :client="client" />
         <ClientCardQRCode :client="client" />
-        <ClientCardConfig :client="client" />
+        <ClientCardPortList
+          :client="client"
+          :port-forwarding="portForwarding"
+        />
         <ClientCardOneTimeLinkBtn :client="client" />
       </div>
     </div>
@@ -47,5 +50,6 @@
 <script setup lang="ts">
 defineProps<{
   client: LocalClient;
+  portForwarding: PortDefinition[];
 }>();
 </script>

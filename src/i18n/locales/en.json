@@ -124,7 +124,10 @@
     "firewallIps": "Firewall Allowed IPs",
     "firewallIpsDesc": "Destination IPs/CIDRs this client can access (server-side enforcement). Leave empty to use Allowed IPs. Supports optional port and protocol filtering. See docs for syntax.",
     "downloadPng": "Download PNG",
-    "copyPng": "Copy PNG"
+    "copyPng": "Copy PNG",
+    "portList": "Port forwarding",
+    "portExternal": "External",
+    "portInternal": "Internal"
   },
   "dialog": {
     "change": "Change",
@@ -206,7 +209,8 @@
       "address6": "IPv6 Address",
       "serverAllowedIps": "Server Allowed IPs",
       "firewallIps": "Firewall Allowed IPs",
-      "firewallIpsInvalid": "Invalid firewall IP entry. See docs for supported syntax."
+      "firewallIpsInvalid": "Invalid firewall IP entry. See docs for supported syntax.",
+      "ports": "Ports"
     },
     "user": {
       "username": "Username",

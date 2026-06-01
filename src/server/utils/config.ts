@@ -41,6 +41,10 @@ export const WG_ENV = {
   DISABLE_VERSION_CHECK: process.env.DISABLE_VERSION_CHECK === 'true',
 };
 
+export const THIRD_PARTY_ENV = {
+  PORT_FORWARDING_URL: process.env.RAPPTOR_PORT_FORWARDING_URL,
+};
+
 export const WG_INITIAL_ENV = {
   ENABLED: process.env.INIT_ENABLED === 'true',
   USERNAME: process.env.INIT_USERNAME,

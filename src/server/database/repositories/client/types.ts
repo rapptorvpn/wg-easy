@@ -94,6 +94,14 @@ export const ClientGetSchema = z.object({
   clientId: clientId,
 });
 
+export const ClientPortForwardingSchema = z.object({
+  ports: z.array(PortSchema, { message: t('zod.client.ports') }),
+});
+
+export type ClientPortForwardingType = z.infer<
+  typeof ClientPortForwardingSchema
+>;
+
 export type ClientCreateFromExistingType = Pick<
   ClientType,
   | 'name'
