@@ -21,6 +21,9 @@ services:
       - INIT_PORT=51820
       - INIT_USERNAME=testtest
       - INIT_PASSWORD=Qweasdyxcv!2
+      - RAPPTOR_PORT_FORWARDING_URL=http://rapptor-port-forwarding:4010
+    extra_hosts:
+      - "rapptor-port-forwarding:host-gateway"
 
 # folders should be generated inside container
 volumes:

@@ -76,6 +76,10 @@ Auto launch OAuth provider: ${WG_ENV.OAUTH_AUTO_LAUNCH ?? 'None'}
 `);
 }
 
+export const THIRD_PARTY_ENV = {
+  PORT_FORWARDING_URL: process.env.RAPPTOR_PORT_FORWARDING_URL,
+};
+
 export const WG_INITIAL_ENV = {
   ENABLED: process.env.INIT_ENABLED === 'true',
   USERNAME: process.env.INIT_USERNAME,

@@ -33,8 +33,11 @@
 </template>
 
 <script setup lang="ts">
+import { usePortForwardingStore } from '~/stores/portForwarding';
+
 const globalStore = useGlobalStore();
 const clientsStore = useClientsStore();
+const portForwardingStore = usePortForwardingStore();
 
 // TODO?: use hover card to show more detailed info without leaving the page
 // or do something like a accordion
@@ -42,6 +45,7 @@ const clientsStore = useClientsStore();
 const intervalId = ref<NodeJS.Timeout | null>(null);
 
 clientsStore.refresh();
+portForwardingStore.refresh();
 
 onMounted(() => {
   // TODO?: replace with websocket or similar
