@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import type { PortListFieldItem } from '#shared/types/portForwarding';
+import { toPortListFieldItem } from '~/utils/ports';
 
 function portRangesEqual(a: PortRange, b: PortRange): boolean {
   return a.start === b.start && a.end === b.end;
@@ -57,7 +58,7 @@ function editedPortsEqual(
 const props = withDefaults(
   defineProps<{
     occupiedPorts?: number[];
-    onChange?: (ports: PortListFieldItem[]) => void;
+    onChange?: (ports: PortListFieldItem[]) => void | Promise<void>;
     ports?: PortForwardingItem[];
   }>(),
   {
@@ -67,36 +68,16 @@ const props = withDefaults(
   }
 );
 
-const defaultPorts = ref<PortListFieldItem[]>(
-  props.ports.map(({ dstPort, srcPort, type }) => ({
-    dstPort: { ...dstPort },
-    srcPort: { ...srcPort },
-    type,
-  }))
-);
-const editedPorts = ref<PortListFieldItem[]>(
-  props.ports.map(({ dstPort, srcPort, type }) => ({
-    dstPort: { ...dstPort },
-    srcPort: { ...srcPort },
-    type,
-  }))
-);
+const defaultPorts = ref<PortListFieldItem[]>(toPortListFieldItem(props.ports));
+const editedPorts = ref<PortListFieldItem[]>(toPortListFieldItem(props.ports));
 const isValid = ref<boolean>(true);
 const isSubmitingPorts = ref<boolean>(false);
 
 watch(
   () => props.ports,
   (ports) => {
-    defaultPorts.value = ports.map(({ dstPort, srcPort, type }) => ({
-      dstPort: { ...dstPort },
-      srcPort: { ...srcPort },
-      type,
-    }));
-    editedPorts.value = ports.map(({ dstPort, srcPort, type }) => ({
-      dstPort: { ...dstPort },
-      srcPort: { ...srcPort },
-      type,
-    }));
+    defaultPorts.value = toPortListFieldItem(ports);
+    editedPorts.value = toPortListFieldItem(ports);
   },
   { deep: true }
 );
@@ -105,11 +86,18 @@ const isDirty = computed(
   () => !editedPortsEqual(editedPorts.value, defaultPorts.value)
 );
 
-function submit() {
-  if (isValid.value && !isSubmitingPorts.value) {
-    defaultPorts.value = [...editedPorts.value];
+async function submit() {
+  if (!isValid.value || isSubmitingPorts.value) {
+    return;
+  }
 
-    props.onChange?.(editedPorts.value);
+  isSubmitingPorts.value = true;
+
+  try {
+    await props.onChange?.(editedPorts.value);
+    defaultPorts.value = [...editedPorts.value];
+  } finally {
+    isSubmitingPorts.value = false;
   }
 }
 

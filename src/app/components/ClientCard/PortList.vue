@@ -14,12 +14,21 @@
 </template>
 
 <script setup lang="ts">
-import type { PortListFieldItem } from '#shared/types/portForwarding';
+import { FetchError } from 'ofetch';
+
+import type {
+  PortForwardingDefinition,
+  PortListFieldItem,
+} from '#shared/types/portForwarding';
+import { toPortForwardingItems } from '~/utils/ports';
 
 const props = defineProps<{
   client: LocalClient;
   portForwarding: PortDefinition[];
 }>();
+
+const portForwardingStore = usePortForwardingStore();
+const toast = useToast();
 
 const ports = computed(
   () =>
@@ -30,7 +39,36 @@ const ports = computed(
 
 const occupiedPorts = ref<number[]>([10240, 10241, 10242, 10243, 10244, 10245]);
 
-function onChange(newPorts: PortListFieldItem[]) {
-  console.log('submit ports', newPorts, props.client.ipv4Address);
+async function onChange(newPorts: PortListFieldItem[]) {
+  try {
+    await $fetch<PortForwardingDefinition[]>(
+      `/api/client/${props.client.id}/portforwarding`,
+      {
+        method: 'post',
+        body: { ports: newPorts },
+      }
+    );
+    portForwardingStore.setPortForwarding([
+      {
+        ipv4: props.client.ipv4Address,
+        ports: toPortForwardingItems(newPorts),
+      },
+    ]);
+  } catch (e) {
+    if (e instanceof FetchError) {
+      toast.showToast({
+        type: 'error',
+        message: e.data?.message ?? e.statusMessage,
+      });
+    } else if (e instanceof Error) {
+      toast.showToast({
+        type: 'error',
+        message: e.message,
+      });
+    } else {
+      console.error(e);
+    }
+    throw e;
+  }
 }
 </script>
