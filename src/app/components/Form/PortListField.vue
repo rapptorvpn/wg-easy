@@ -15,7 +15,9 @@
             inputmode="numeric"
             :class="[
               ...inputClasses,
-              ...(portRangeIsValid(field.srcPort) ? [] : inputErrorClasses),
+              ...(portRangeIsValid(field.srcPort, field.type)
+                ? []
+                : inputErrorClasses),
             ]"
             :placeholder="$t('general.port')"
             @input="onPortInput($event, i, 'srcPort')"
@@ -35,7 +37,9 @@
             inputmode="numeric"
             :class="[
               ...inputClasses,
-              ...(portRangeIsValid(field.dstPort) ? [] : [inputErrorClasses]),
+              ...(portRangeIsValid(field.dstPort, field.type)
+                ? []
+                : [inputErrorClasses]),
             ]"
             :placeholder="$t('general.port')"
             @input="onPortInput($event, i, 'dstPort')"
@@ -69,6 +73,7 @@ import type {
   PortListFieldItem,
   PortRange,
 } from '#shared/types/portForwarding';
+import { portRangesOverlap } from '~/utils/ports';
 
 type PortField = PortListFieldItem;
 
@@ -76,6 +81,13 @@ const editedPorts = defineModel<PortListFieldItem[]>('edited-ports', {
   default: () => [],
 });
 const isValid = defineModel<boolean>('is-valid', { default: () => true });
+
+const props = withDefaults(
+  defineProps<{
+    unavailablePorts?: PortDefinition[];
+  }>(),
+  { unavailablePorts: undefined }
+);
 
 function emptyPortRange(): PortRange {
   return { end: NaN, start: NaN };
@@ -189,7 +201,7 @@ function portInRange(port: number): boolean {
   return port >= 1 && port <= 65535;
 }
 
-function portRangeIsValid(range: PortRange): boolean {
+function portRangeIsValid(range: PortRange, type: PortListType): boolean {
   if (Number.isNaN(range.start) && Number.isNaN(range.end)) {
     return true;
   }
@@ -199,7 +211,19 @@ function portRangeIsValid(range: PortRange): boolean {
   if (range.start > range.end) {
     return false;
   }
-  return portInRange(range.start) && portInRange(range.end);
+  return (
+    portInRange(range.start) &&
+    portInRange(range.end) &&
+    !props.unavailablePorts?.some((unavailablePort) => {
+      return (
+        portRangesOverlap(range, {
+          start: unavailablePort.port,
+          end: unavailablePort.port,
+        }) &&
+        (type === 'both' || type === unavailablePort.type)
+      );
+    })
+  );
 }
 
 function fieldIsEmpty(field: PortField): boolean {
@@ -210,7 +234,10 @@ function fieldIsValid(field: PortField): boolean {
   if (fieldIsEmpty(field)) {
     return true;
   }
-  return portRangeIsValid(field.srcPort) && portRangeIsValid(field.dstPort);
+  return (
+    portRangeIsValid(field.srcPort, field.type) &&
+    portRangeIsValid(field.dstPort, field.type)
+  );
 }
 
 function fieldsToEditedPorts(fieldValues: PortField[]): PortListFieldItem[] {

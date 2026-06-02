@@ -11,7 +11,7 @@
         <FormPortListField
           v-model:edited-ports="editedPorts"
           v-model:is-valid="isValid"
-          :occupied-ports="props.occupiedPorts"
+          :unavailable-ports="props.unavailablePorts"
         />
       </div>
     </template>
@@ -33,7 +33,10 @@
 </template>
 
 <script setup lang="ts">
-import type { PortListFieldItem } from '#shared/types/portForwarding';
+import type {
+  PortDefinition,
+  PortListFieldItem,
+} from '#shared/types/portForwarding';
 import { toPortListFieldItem } from '~/utils/ports';
 
 function portRangesEqual(a: PortRange, b: PortRange): boolean {
@@ -57,12 +60,12 @@ function editedPortsEqual(
 
 const props = withDefaults(
   defineProps<{
-    occupiedPorts?: number[];
+    unavailablePorts?: PortDefinition[];
     onChange?: (ports: PortListFieldItem[]) => void | Promise<void>;
     ports?: PortForwardingItem[];
   }>(),
   {
-    occupiedPorts: undefined,
+    unavailablePorts: undefined,
     onChange: undefined,
     ports: () => [],
   }

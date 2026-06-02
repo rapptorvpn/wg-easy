@@ -33,6 +33,15 @@ const indexOfPortWithDifferentType = (
   });
 };
 
+export const portRangesOverlap = (
+  portRangeA: PortRange,
+  portRangeB: PortRange
+): boolean => {
+  return (
+    portRangeA.start <= portRangeB.end && portRangeB.start <= portRangeA.end
+  );
+};
+
 export function toPortListFieldItem(
   ports: PortForwardingItem[]
 ): PortListFieldItem[] {
