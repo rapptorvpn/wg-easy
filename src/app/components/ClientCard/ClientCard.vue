@@ -50,6 +50,6 @@
 <script setup lang="ts">
 defineProps<{
   client: LocalClient;
-  portForwarding: PortDefinition[];
+  portForwarding: PortForwardingDefinition[];
 }>();
 </script>

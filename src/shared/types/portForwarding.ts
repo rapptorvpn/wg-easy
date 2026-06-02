@@ -6,16 +6,19 @@ export type PortRange = {
 export type PortForwardingItem = {
   dstPort: PortRange;
   srcPort: PortRange;
-  type: 'tcp' | 'udp';
+  type: PortType;
 };
 
 export type PortListFieldItem = {
   dstPort: PortRange;
   srcPort: PortRange;
-  type: 'both' | 'tcp' | 'udp';
+  type: PortListType;
 };
 
 export type PortForwardingDefinition = {
   ipv4: string;
   ports: PortForwardingItem[];
 };
+
+export type PortType = 'tcp' | 'udp';
+export type PortListType = PortType | 'both';

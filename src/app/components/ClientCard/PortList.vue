@@ -15,16 +15,11 @@
 
 <script setup lang="ts">
 import { FetchError } from 'ofetch';
-
-import type {
-  PortForwardingDefinition,
-  PortListFieldItem,
-} from '#shared/types/portForwarding';
 import { toPortForwardingItems } from '~/utils/ports';
 
 const props = defineProps<{
   client: LocalClient;
-  portForwarding: PortDefinition[];
+  portForwarding: PortForwardingDefinition[];
 }>();
 
 const portForwardingStore = usePortForwardingStore();
