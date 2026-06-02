@@ -1,5 +1,6 @@
 import { expect, test, describe } from 'vitest';
 import {
+  portRangesOverlap,
   toPortForwardingItems,
   toPortListFieldItem,
 } from '../../app/utils/ports';
@@ -95,5 +96,13 @@ describe('toPortForwardingItems', () => {
         type: 'tcp',
       },
     ]);
+  });
+});
+
+describe('portRangesOverlap()', () => {
+  test('Overlapping port range returns true', () => {
+    expect(
+      portRangesOverlap({ start: 123, end: 123 }, { start: 123, end: 123 })
+    ).toBe(true);
   });
 });

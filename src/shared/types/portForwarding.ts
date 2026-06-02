@@ -20,5 +20,10 @@ export type PortForwardingDefinition = {
   ports: PortForwardingItem[];
 };
 
+export type PortDefinition = {
+  port: number;
+  type: PortType;
+};
+
 export type PortType = 'tcp' | 'udp';
 export type PortListType = PortType | 'both';

@@ -1,6 +1,6 @@
 <template>
   <ClientsPortForwardingDialog
-    :occupied-ports="occupiedPorts"
+    :unavailable-ports="unavailablePorts"
     :on-change="onChange"
     :ports="ports"
   >
@@ -15,7 +15,6 @@
 
 <script setup lang="ts">
 import { FetchError } from 'ofetch';
-import { toPortForwardingItems } from '~/utils/ports';
 
 const props = defineProps<{
   client: LocalClient;
@@ -23,6 +22,7 @@ const props = defineProps<{
 }>();
 
 const portForwardingStore = usePortForwardingStore();
+const unavailablePortsStore = useUnavailablePortsStore();
 const toast = useToast();
 
 const ports = computed(
@@ -32,7 +32,9 @@ const ports = computed(
     )?.ports ?? []
 );
 
-const occupiedPorts = ref<number[]>([10240, 10241, 10242, 10243, 10244, 10245]);
+const unavailablePorts = ref<PortDefinition[]>(
+  unavailablePortsStore.unavailablePorts ?? []
+);
 
 async function onChange(newPorts: PortListFieldItem[]) {
   try {

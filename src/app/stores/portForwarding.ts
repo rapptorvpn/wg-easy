@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import type { PortForwardingDefinition } from '#shared/types/portForwarding';
 
 export type {
   PortForwardingDefinition,
