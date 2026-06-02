@@ -229,22 +229,19 @@ function portsToFields(ports: PortListFieldItem[]): PortField[] {
   ];
 }
 
-function portRangesEqual(a: PortRange, b: PortRange): boolean {
-  return a.start === b.start && a.end === b.end;
+function portRangesEqual(a?: PortRange, b?: PortRange): boolean {
+  return a?.start === b?.start && a?.end === b?.end;
 }
 
-function editedPortsEqual(
-  a: PortListFieldItem[],
-  b: PortListFieldItem[]
-): boolean {
+function fieldsEqual(a: PortField[], b: PortField[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
   return a.every(
-    (item, i) =>
-      portRangesEqual(item.srcPort, b[i]!.srcPort) &&
-      portRangesEqual(item.dstPort, b[i]!.dstPort) &&
-      item.type === b[i]!.type
+    (field, i) =>
+      portRangesEqual(field.srcPort, b[i]?.srcPort) &&
+      portRangesEqual(field.dstPort, b[i]?.dstPort) &&
+      field.type === b[i]!.type
   );
 }
 
@@ -290,7 +287,7 @@ watch(
   editedPorts,
   (ports) => {
     const next = portsToFields(ports ?? []);
-    if (!editedPortsEqual(fieldsToEditedPorts(next), ports ?? [])) {
+    if (!fieldsEqual(fields.value, next)) {
       fields.value = next;
       displayValues.value = {};
     }

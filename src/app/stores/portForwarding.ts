@@ -22,5 +22,27 @@ export const usePortForwardingStore = defineStore('PortForwarding', () => {
     portForwarding.value = _portForwarding.value ?? null;
   }
 
-  return { portForwarding, refresh, _portForwarding };
+  function setPortForwarding(
+    updatedPortForwarding: PortForwardingDefinition[]
+  ) {
+    if (!portForwarding.value) {
+      portForwarding.value = updatedPortForwarding;
+      return;
+    }
+
+    const next = [...portForwarding.value];
+    for (const portForwardingDef of updatedPortForwarding) {
+      const ipIndex = next.findIndex(
+        ({ ipv4 }) => ipv4 === portForwardingDef.ipv4
+      );
+      if (ipIndex !== -1) {
+        next[ipIndex] = portForwardingDef;
+      } else {
+        next.push(portForwardingDef);
+      }
+    }
+    portForwarding.value = next;
+  }
+
+  return { portForwarding, refresh, setPortForwarding, _portForwarding };
 });

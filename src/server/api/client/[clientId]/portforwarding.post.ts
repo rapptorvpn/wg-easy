@@ -2,6 +2,8 @@ import {
   ClientGetSchema,
   ClientPortForwardingSchema,
 } from '#db/repositories/client/types';
+import type { PortForwardingDefinition } from '#shared/types/portForwarding';
+import { toPortForwardingItems } from '~/utils/ports';
 
 export default definePermissionEventHandler(
   'clients',
@@ -27,8 +29,31 @@ export default definePermissionEventHandler(
       });
     }
 
-    console.log('portforwarding data', data);
+    const baseUrl = THIRD_PARTY_ENV.PORT_FORWARDING_URL;
 
-    return { success: true };
+    if (!baseUrl) {
+      throw createError({
+        statusCode: 503,
+        statusMessage: 'Port forwarding service not configured',
+      });
+    }
+
+    const updatedEntry: PortForwardingDefinition = {
+      ipv4: client.ipv4Address,
+      ports: toPortForwardingItems(data.ports),
+    };
+
+    try {
+      return await $fetch<PortForwardingDefinition[]>(`${baseUrl}/ports/`, {
+        method: 'PUT',
+        body: [updatedEntry],
+      });
+    } catch (e) {
+      SERVER_DEBUG('Failed to update port forwarding data: ', e);
+      throw createError({
+        statusCode: 502,
+        statusMessage: 'Failed to update port forwarding data',
+      });
+    }
   }
 );

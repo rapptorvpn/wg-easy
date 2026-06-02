@@ -94,8 +94,19 @@ export const ClientGetSchema = z.object({
   clientId: clientId,
 });
 
+const PortRangeSchema = z.object({
+  end: z.number(),
+  start: z.number(),
+});
+
+const PortListFieldItemSchema = z.object({
+  dstPort: PortRangeSchema,
+  srcPort: PortRangeSchema,
+  type: z.enum(['both', 'tcp', 'udp']),
+});
+
 export const ClientPortForwardingSchema = z.object({
-  ports: z.array(PortSchema, { message: t('zod.client.ports') }),
+  ports: z.array(PortListFieldItemSchema, { message: t('zod.client.ports') }),
 });
 
 export type ClientPortForwardingType = z.infer<
