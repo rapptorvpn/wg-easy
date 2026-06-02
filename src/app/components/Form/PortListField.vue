@@ -42,15 +42,23 @@
             @blur="onPortBlur(i, 'dstPort')"
           />
         </div>
-        <select
-          :class="selectClasses"
-          :value="field.type"
-          @change="onTypeChange($event, i)"
-        >
-          <option value="both">TCP + UDP</option>
-          <option value="tcp">TCP</option>
-          <option value="udp">UDP</option>
-        </select>
+        <div class="flex min-w-0 flex-1 flex-col gap-1">
+          <span
+            v-if="i == 0"
+            class="text-xs text-gray-500 dark:text-neutral-400"
+          >
+            {{ $t('client.portProtocol') }}
+          </span>
+          <select
+            :class="selectClasses"
+            :value="field.type"
+            @change="onTypeChange($event, i)"
+          >
+            <option value="both">TCP + UDP</option>
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
