@@ -127,7 +127,8 @@
     "copyPng": "Copy PNG",
     "portList": "Port forwarding",
     "portExternal": "External",
-    "portInternal": "Internal"
+    "portInternal": "Internal",
+    "portProtocol": "Protocol"
   },
   "dialog": {
     "change": "Change",
