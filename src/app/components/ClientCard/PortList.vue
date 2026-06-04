@@ -1,7 +1,7 @@
 <template>
   <ClientsPortForwardingDialog
     :unavailable-ports="unavailablePorts"
-    :on-change="onChange"
+    :on-submit="onSubmit"
     :ports="ports"
   >
     <div
@@ -36,7 +36,7 @@ const unavailablePorts = ref<PortDefinition[]>(
   unavailablePortsStore.unavailablePorts ?? []
 );
 
-async function onChange(newPorts: PortListFieldItem[]) {
+async function onSubmit(newPorts: PortListFieldItem[]) {
   try {
     await $fetch<PortForwardingDefinition[]>(
       `/api/client/${props.client.id}/portforwarding`,
