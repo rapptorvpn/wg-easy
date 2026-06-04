@@ -101,8 +101,24 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
 
 function onPortBlur(key: 'dstPort' | 'srcPort') {
   const inputValue = key === 'srcPort' ? inputSrcValue : inputDstValue;
+  const otherInputValue = key === 'srcPort' ? inputDstValue : inputSrcValue;
   const portRange =
     key === 'srcPort' ? props.port?.srcPort : props.port?.dstPort;
+  const otherPortRange =
+    key === 'srcPort' ? props.port?.dstPort : props.port?.srcPort;
+  const otherKey: typeof key = key === 'srcPort' ? 'dstPort' : 'srcPort';
+
+  if (portRange && !otherPortRange) {
+    const value = {
+      [key]: portRange,
+      [otherKey]: portRange,
+      type: props.port?.type ?? 'both',
+    } as PortListFieldItem;
+
+    otherInputValue.value = portFieldItemToFieldString(portRange);
+
+    emit('change', value);
+  }
 
   inputValue.value = portFieldItemToFieldString(portRange);
 }
