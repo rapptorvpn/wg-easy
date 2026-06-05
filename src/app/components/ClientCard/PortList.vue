@@ -25,12 +25,14 @@ const portForwardingStore = usePortForwardingStore();
 const unavailablePortsStore = useUnavailablePortsStore();
 const toast = useToast();
 
-const ports = computed(
-  () =>
+const ports = computed(() => {
+  const portForwardingItems =
     props.portForwarding.find(
       (portForwardingDef) => portForwardingDef.ipv4 === props.client.ipv4Address
-    )?.ports ?? []
-);
+    )?.ports ?? [];
+
+  return toPortListFieldItem(portForwardingItems);
+});
 
 const unavailablePorts = ref<PortDefinition[]>(
   unavailablePortsStore.unavailablePorts ?? []
