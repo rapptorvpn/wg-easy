@@ -60,7 +60,7 @@ const props = withDefaults(
   defineProps<{
     unavailablePorts?: PortDefinition[];
     onSubmit?: (ports: PortListFieldItem[]) => void | Promise<void>;
-    ports?: PortForwardingItem[];
+    ports?: PortListFieldItem[];
   }>(),
   {
     unavailablePorts: undefined,
@@ -69,8 +69,8 @@ const props = withDefaults(
   }
 );
 
-const defaultPorts = ref<PortForwardingItem[]>(props.ports);
-const editedPorts = ref<PortForwardingItem[]>(props.ports);
+const defaultPorts = ref<PortListFieldItem[]>(props.ports);
+const editedPorts = ref<PortListFieldItem[]>(props.ports);
 const isValid = ref<boolean>(true);
 const isSubmitingPorts = ref<boolean>(false);
 
