@@ -1,5 +1,5 @@
 <template>
-  <div class="flex w-full items-end gap-2">
+  <div ref="rootRef" class="flex w-full items-end gap-2" @focusout="onFocusOut">
     <div class="flex min-w-0 flex-1 flex-col gap-1">
       <span
         v-if="props.showLabels"
@@ -75,7 +75,10 @@ const inputDstValue = ref<string>(
   portFieldItemToFieldString(props.port?.dstPort)
 );
 
+const rootRef = ref<HTMLDivElement | null>(null);
+
 const emit = defineEmits<{
+  blur: [];
   change: [portDef: PortListFieldItem | undefined];
 }>();
 
@@ -98,6 +101,10 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
 
   emit('change', value);
 };
+
+function onFocusOut(_e: FocusEvent) {
+  emit('blur');
+}
 
 function onPortBlur(key: 'dstPort' | 'srcPort') {
   const inputValue = key === 'srcPort' ? inputSrcValue : inputDstValue;
