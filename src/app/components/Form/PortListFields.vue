@@ -1,24 +1,35 @@
 <template>
   <div class="flex flex-col gap-2">
-    <div v-for="(field, i) in forwardingFields" :key="i">
-      <PortListField
-        :src-is-valid="
-          !field
-            ? true
-            : portRangeIsValid(
-                field.srcPort,
-                field.type,
-                props.unavailablePorts
-              )
+    <template v-for="(field, i) in forwardingFields" :key="i">
+      <template
+        v-if="
+          field?.srcPort ||
+          field?.dstPort ||
+          i == editFieldIndex ||
+          i === forwardingFields.length - 1
         "
-        :dst-is-valid="
-          !field ? true : portRangeIsValid(field.dstPort, field.type, [])
-        "
-        :show-labels="i === 0"
-        :port="field"
-        @change="onPortChange($event, i)"
-      />
-    </div>
+      >
+        <PortListField
+          :src-is-valid="
+            !field
+              ? true
+              : portRangeIsValid(
+                  field.srcPort,
+                  field.type,
+                  props.unavailablePorts
+                )
+          "
+          :dst-is-valid="
+            !field ? true : portRangeIsValid(field.dstPort, field.type, [])
+          "
+          :show-labels="i === 0"
+          :port="field"
+          @change="onPortChange($event, i)"
+          @blur="onPortBlur"
+          @focus="onPortFocus(i)"
+        />
+      </template>
+    </template>
   </div>
 </template>
 
@@ -65,6 +76,18 @@ const onPortChange = (
     }
   }
 };
+
+const onPortBlur = () => {
+  console.log('onPortBlur');
+  editFieldIndex.value = undefined;
+};
+
+const onPortFocus = (index: number) => {
+  console.log('onPortFocus', index);
+  editFieldIndex.value = index;
+};
+
+const editFieldIndex = ref<number | undefined>(undefined);
 
 // end refactor
 

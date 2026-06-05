@@ -39,6 +39,9 @@ const unavailablePorts = ref<PortDefinition[]>(
 );
 
 async function onSubmit(newPorts: PortListFieldItem[]) {
+  newPorts = newPorts.filter(
+    (portListField) => portListField.srcPort && portListField.dstPort
+  );
   try {
     await $fetch<PortForwardingDefinition[]>(
       `/api/client/${props.client.id}/portforwarding`,

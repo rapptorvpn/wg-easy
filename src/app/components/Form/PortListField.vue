@@ -1,5 +1,10 @@
 <template>
-  <div ref="rootRef" class="flex w-full items-end gap-2" @focusout="onFocusOut">
+  <div
+    ref="rootRef"
+    class="flex w-full items-end gap-2"
+    @focusout="onFocusOut"
+    @focusin="onFocusIn"
+  >
     <div class="flex min-w-0 flex-1 flex-col gap-1">
       <span
         v-if="props.showLabels"
@@ -16,8 +21,9 @@
           ...(props.srcIsValid ? [] : inputErrorClasses),
         ]"
         :placeholder="$t('general.port')"
-        @input="onPortInput($event, 'srcPort')"
         @blur="onPortBlur('srcPort')"
+        @focusin="onFocusIn"
+        @input="onPortInput($event, 'srcPort')"
       />
     </div>
     <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -36,8 +42,8 @@
           ...(props.dstIsValid ? [] : inputErrorClasses),
         ]"
         :placeholder="$t('general.port')"
-        @input="onPortInput($event, 'dstPort')"
         @blur="onPortBlur('dstPort')"
+        @input="onPortInput($event, 'dstPort')"
       />
     </div>
     <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -80,6 +86,7 @@ const rootRef = ref<HTMLDivElement | null>(null);
 const emit = defineEmits<{
   blur: [];
   change: [portDef: PortListFieldItem | undefined];
+  focus: [];
 }>();
 
 const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
@@ -102,31 +109,30 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
   emit('change', value);
 };
 
-function onFocusOut(_e: FocusEvent) {
-  emit('blur');
+function onFocusIn(e: FocusEvent) {
+  if (
+    e.relatedTarget &&
+    e.relatedTarget instanceof Node &&
+    !rootRef.value?.contains(e.relatedTarget)
+  ) {
+    emit('focus');
+  }
+}
+
+function onFocusOut(e: FocusEvent) {
+  if (
+    e.relatedTarget &&
+    e.relatedTarget instanceof Node &&
+    !rootRef.value?.contains(e.relatedTarget)
+  ) {
+    emit('blur');
+  }
 }
 
 function onPortBlur(key: 'dstPort' | 'srcPort') {
   const inputValue = key === 'srcPort' ? inputSrcValue : inputDstValue;
-  const otherInputValue = key === 'srcPort' ? inputDstValue : inputSrcValue;
   const portRange =
     key === 'srcPort' ? props.port?.srcPort : props.port?.dstPort;
-  const otherPortRange =
-    key === 'srcPort' ? props.port?.dstPort : props.port?.srcPort;
-  const otherKey: typeof key = key === 'srcPort' ? 'dstPort' : 'srcPort';
-
-  if (portRange && !otherPortRange) {
-    const value = {
-      [key]: portRange,
-      [otherKey]: portRange,
-      type: props.port?.type ?? 'both',
-    } as PortListFieldItem;
-
-    otherInputValue.value = portFieldItemToFieldString(portRange);
-
-    emit('change', value);
-  }
-
   inputValue.value = portFieldItemToFieldString(portRange);
 }
 
