@@ -12,6 +12,8 @@
           v-model:port-forwarding="editedPorts"
           v-model:is-valid="isValid"
           :unavailable-ports="props.unavailablePorts"
+          :port-forwarding-items="props.portForwardingItems"
+          :ipv4="props.ipv4"
         />
       </div>
     </template>
@@ -61,6 +63,8 @@ const props = withDefaults(
     unavailablePorts?: PortDefinition[];
     onSubmit?: (ports: PortListFieldItem[]) => void | Promise<void>;
     ports?: PortListFieldItem[];
+    portForwardingItems: PortForwardingDefinition[];
+    ipv4: string;
   }>(),
   {
     unavailablePorts: undefined,
