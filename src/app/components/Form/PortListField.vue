@@ -18,7 +18,7 @@
         inputmode="numeric"
         :class="[
           ...inputClasses,
-          ...(props.srcIsValid ? [] : inputErrorClasses),
+          ...(props.validation?.valid === false ? inputErrorClasses : []),
         ]"
         :placeholder="$t('general.port')"
         @blur="onPortBlur('srcPort')"
@@ -39,7 +39,7 @@
         inputmode="numeric"
         :class="[
           ...inputClasses,
-          ...(props.dstIsValid ? [] : inputErrorClasses),
+          ...(props.validation?.valid === false ? inputErrorClasses : []),
         ]"
         :placeholder="$t('general.port')"
         @blur="onPortBlur('dstPort')"
@@ -64,12 +64,27 @@
       </select>
     </div>
   </div>
+  <template v-for="errorStr in props.validation?.errors" :key="errorStr">
+    <div class="flex min-w-0 flex-1 flex-col">
+      <span
+        :class="[
+          'text-xs',
+          'text-gray-500',
+          'dark:text-neutral-400',
+          ...inputErrorClasses,
+        ]"
+      >
+        {{ errorStr }}
+      </span>
+    </div>
+  </template>
 </template>
 
 <script lang="ts" setup>
+import type { ValidationResult } from '~/utils/ports';
+
 const props = defineProps<{
-  srcIsValid: boolean;
-  dstIsValid: boolean;
+  validation: ValidationResult | undefined;
   port: PortListFieldItem | undefined;
   showLabels: boolean;
 }>();

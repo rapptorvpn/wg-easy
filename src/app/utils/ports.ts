@@ -1,4 +1,8 @@
-import type { PortListFieldItem } from '~/stores/portForwarding';
+import type {
+  PortForwardingItem,
+  PortForwardingDefinition,
+  PortListFieldItem,
+} from '~/stores/portForwarding';
 
 export const fieldStringToPortRange = (
   value: string
@@ -82,33 +86,187 @@ export const portFieldItemToFieldString = (
   }
 };
 
-const portInRange = (port: number): boolean => {
-  return port >= 1 && port <= 65535;
-};
+type Validator = (data: ValidationArg) => ValidationResult;
 
 export const portRangeIsValid = (
-  range: PortRange | undefined,
+  portForwarding: PortForwardingDefinition[],
+  portRange: PortRange | undefined,
+  otherPortRange: PortRange | undefined,
   type: PortListType,
-  unavailablePorts: PortDefinition[]
-): boolean => {
-  if (!range || range.start > range.end) {
-    return false;
-  }
+  unavailablePorts: PortDefinition[],
+  ipv4: string
+): { valid: boolean; errors: string[] } => {
+  const [valid, errors] = validators.reduce(
+    ([valid, errors], validator) => {
+      const result = validator({
+        portForwarding,
+        portRange,
+        otherPortRange,
+        type,
+        unavailablePorts,
+        ipv4,
+      });
 
-  return (
-    portInRange(range.start) &&
-    portInRange(range.end) &&
-    !unavailablePorts?.some((unavailablePort) => {
+      return [valid && result.valid, [...errors, ...result.errors]];
+    },
+    [true, []] as [boolean, string[]]
+  );
+
+  return { valid, errors };
+};
+
+export interface ValidationResult {
+  errors: string[];
+  valid: boolean;
+}
+
+interface ValidationArg {
+  portForwarding: PortForwardingDefinition[];
+  portRange: PortRange | undefined;
+  otherPortRange: PortRange | undefined;
+  type: PortListType;
+  unavailablePorts: PortDefinition[];
+  ipv4: string;
+}
+
+const validatePortRangesMatch = (data: ValidationArg): ValidationResult => {
+  const valid: boolean =
+    !!data.portRange &&
+    !!data.otherPortRange &&
+    data.portRange.end - data.portRange.start ===
+      data.otherPortRange.end - data.otherPortRange.start;
+  const errors = valid
+    ? []
+    : ['The number of ports in the external and internal ranges must match'];
+
+  return { errors, valid };
+};
+
+const getPortRangeStr = (port: PortRange, type: PortType) => {
+  const numericRange =
+    port.end !== port.start
+      ? `${port.start}-${port.end}`
+      : port.start.toString();
+  return `${numericRange} (${type})`;
+};
+
+const formatUnavailablePortsStr = (
+  unavailablePorts: { port: PortRange; type: PortType }[]
+): string => {
+  const allPortsButLast: string[] = unavailablePorts.reduce<string[]>(
+    (acc, unavailablePort, i) => {
+      if (i !== unavailablePorts.length - 1) {
+        acc.push(getPortRangeStr(unavailablePort.port, unavailablePort.type));
+      }
+      return acc;
+    },
+    []
+  );
+  const lastPort = unavailablePorts[unavailablePorts.length - 1];
+  return lastPort
+    ? `${allPortsButLast.join(', ')} ${allPortsButLast.length >= 1 ? '& ' : ''}${getPortRangeStr(lastPort.port, lastPort.type)}`
+    : '';
+};
+
+const validatePortsAreAvailable = (data: ValidationArg): ValidationResult => {
+  const conflictingUnavailablePorts = data.unavailablePorts.filter(
+    (unavailablePort) => {
       return (
-        portRangesOverlap(range, {
+        data.portRange &&
+        portRangesOverlap(data.portRange, {
           start: unavailablePort.port,
           end: unavailablePort.port,
         }) &&
-        (type === 'both' || type === unavailablePort.type)
+        (data.type === 'both' || data.type === unavailablePort.type)
       );
-    })
+    }
   );
+  const valid = conflictingUnavailablePorts.length === 0;
+  const unavailablePortsString = formatUnavailablePortsStr(
+    conflictingUnavailablePorts.map((port) => ({
+      port: { start: port.port, end: port.port },
+      type: port.type,
+    }))
+  );
+  const errors = valid
+    ? []
+    : [
+        `Port${conflictingUnavailablePorts.length === 1 ? '' : 's'} ${unavailablePortsString} ${conflictingUnavailablePorts.length === 1 ? 'is' : 'are'} not available`,
+      ];
+
+  return { errors, valid };
 };
+
+const validatePortForwardingIsAvailable = (
+  data: ValidationArg
+): ValidationResult => {
+  const conflictingPortRanges = data.portForwarding.reduce<
+    PortForwardingItem[]
+  >((acc, portForwardingDef) => {
+    portForwardingDef.ports.forEach((portRange) => {
+      if (
+        data.portRange &&
+        !(
+          portRange.srcPort.start === data.portRange.start &&
+          portRange.srcPort.end === data.portRange.end &&
+          (portRange.type === data.type || data.type === 'both')
+        ) &&
+        portRangesOverlap(portRange.srcPort, data.portRange) &&
+        (portRange.type === data.type || data.type === 'both')
+      ) {
+        acc.push(portRange);
+      }
+    });
+    return acc;
+  }, []);
+
+  const valid = conflictingPortRanges.length === 0;
+
+  const unavailablePortsString = formatUnavailablePortsStr(
+    conflictingPortRanges.map((port) => ({
+      port: port.srcPort,
+      type: port.type,
+    }))
+  );
+
+  const errors = valid
+    ? []
+    : [
+        `Port${conflictingPortRanges.length === 1 ? '' : 's'} ${unavailablePortsString} ${conflictingPortRanges.length === 1 ? 'is' : 'are'} used in other port forwarding rules`,
+      ];
+
+  return { errors, valid };
+};
+
+const validateStartPortIsLower = (data: ValidationArg): ValidationResult => {
+  const valid = !!data.portRange && data.portRange.start <= data.portRange.end;
+  const errors = valid ? [] : ['Start of port range must be lower than end'];
+
+  return { errors, valid };
+};
+
+const validatePortRangeWithinLimits = (
+  data: ValidationArg
+): ValidationResult => {
+  const valid =
+    !!data.portRange &&
+    data.portRange.start >= 1 &&
+    data.portRange.end <= 65535 &&
+    !!data.otherPortRange &&
+    data.otherPortRange.start >= 1 &&
+    data.otherPortRange.end <= 65535;
+  const errors = valid ? [] : ['Ports must be between 1 - 65535'];
+
+  return { errors, valid };
+};
+
+const validators: Validator[] = [
+  validatePortRangesMatch,
+  validatePortsAreAvailable,
+  validatePortForwardingIsAvailable,
+  validateStartPortIsLower,
+  validatePortRangeWithinLimits,
+];
 
 export const portRangesOverlap = (
   portRangeA: PortRange,

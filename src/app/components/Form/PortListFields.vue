@@ -10,18 +10,7 @@
         "
       >
         <PortListField
-          :src-is-valid="
-            !field
-              ? true
-              : portRangeIsValid(
-                  field.srcPort,
-                  field.type,
-                  props.unavailablePorts
-                )
-          "
-          :dst-is-valid="
-            !field ? true : portRangeIsValid(field.dstPort, field.type, [])
-          "
+          :validation="validation[i]"
           :show-labels="i === 0"
           :port="field"
           @change="onPortChange($event, i)"
@@ -35,23 +24,25 @@
 
 <script lang="ts" setup>
 import PortListField from './PortListField.vue';
-
-const portForwarding = defineModel<(PortListFieldItem | undefined)[]>(
-  'port-forwarding',
-  {
-    default: () => [undefined],
-  }
-);
 // const isValid = defineModel<boolean>('is-valid', { default: () => true });
 
 // start refactor
 
 const props = withDefaults(
   defineProps<{
+    portForwardingItems: PortForwardingDefinition[];
     unavailablePorts?: PortDefinition[];
+    ipv4: string;
   }>(),
   {
     unavailablePorts: () => [],
+  }
+);
+
+const portForwarding = defineModel<(PortListFieldItem | undefined)[]>(
+  'port-forwarding',
+  {
+    default: () => [undefined],
   }
 );
 
@@ -62,6 +53,46 @@ const props = withDefaults(
 
 const forwardingFields = computed(() => {
   return [...portForwarding.value, undefined];
+});
+
+const portForwardingItemsWithForwardingFields = computed(
+  (): PortForwardingDefinition[] => {
+    const forwardingFieldsIndex = props.portForwardingItems.findIndex(
+      (portForwardingItem) => {
+        return portForwardingItem.ipv4 === props.ipv4;
+      }
+    );
+    return props.portForwardingItems[forwardingFieldsIndex]
+      ? [
+          ...props.portForwardingItems.slice(0, forwardingFieldsIndex),
+          {
+            ...props.portForwardingItems[forwardingFieldsIndex],
+            ports: toPortForwardingItems(
+              portForwarding.value.filter((port) => {
+                return !!port;
+              })
+            ),
+          },
+          ...props.portForwardingItems.slice(forwardingFieldsIndex + 1),
+        ]
+      : props.portForwardingItems;
+  }
+);
+
+const validation = computed(() => {
+  return forwardingFields.value.map((field) => {
+    return (
+      field &&
+      portRangeIsValid(
+        portForwardingItemsWithForwardingFields.value,
+        field.srcPort,
+        field.dstPort,
+        field.type,
+        props.unavailablePorts,
+        props.ipv4
+      )
+    );
+  });
 });
 
 const onPortChange = (
