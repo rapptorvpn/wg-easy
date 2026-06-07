@@ -108,12 +108,31 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
   const raw = sanitizePortInput((event.target as HTMLInputElement).value);
   const portRange = fieldStringToPortRange(raw);
 
+  let srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
+  let dstPort = key === 'dstPort' ? portRange : props.port?.dstPort;
   const inputValue = key === 'srcPort' ? inputSrcValue : inputDstValue;
+  const otherPortRange = key === 'srcPort' ? dstPort : srcPort;
 
   inputValue.value = raw;
 
-  let srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
-  let dstPort = key === 'dstPort' ? portRange : props.port?.dstPort;
+  const portRangeLength: number =
+    (portRange?.end ?? 0) - (portRange?.start ?? 0);
+  const otherPortRangeLength: number =
+    (otherPortRange?.end ?? 0) - (otherPortRange?.start ?? 0);
+
+  if (portRangeLength !== otherPortRangeLength) {
+    if (key === 'srcPort') {
+      if (dstPort) {
+        dstPort.end = dstPort.start + portRangeLength;
+        inputDstValue.value = portFieldItemToFieldString(dstPort);
+      }
+    } else {
+      if (srcPort) {
+        srcPort.end = srcPort.start + portRangeLength;
+        inputSrcValue.value = portFieldItemToFieldString(srcPort);
+      }
+    }
+  }
 
   if (inputMode.value === 'copyValues') {
     if (key === 'srcPort') {
