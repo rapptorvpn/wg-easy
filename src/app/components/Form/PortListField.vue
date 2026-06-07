@@ -22,7 +22,6 @@
         ]"
         :placeholder="$t('general.port')"
         @blur="onPortBlur('srcPort')"
-        @focusin="onFocusIn"
         @input="onPortInput($event, 'srcPort')"
       />
     </div>
@@ -97,6 +96,7 @@ const inputDstValue = ref<string>(
 );
 
 const rootRef = ref<HTMLDivElement | null>(null);
+const inputMode = ref<'copyValues' | 'normal'>('normal');
 
 const emit = defineEmits<{
   blur: [];
@@ -112,8 +112,18 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
 
   inputValue.value = raw;
 
-  const srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
-  const dstPort = key === 'dstPort' ? portRange : props.port?.dstPort;
+  let srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
+  let dstPort = key === 'dstPort' ? portRange : props.port?.dstPort;
+
+  if (inputMode.value === 'copyValues') {
+    if (key === 'srcPort') {
+      dstPort = srcPort;
+      inputDstValue.value = portFieldItemToFieldString(dstPort);
+    } else {
+      srcPort = dstPort;
+      inputSrcValue.value = portFieldItemToFieldString(srcPort);
+    }
+  }
 
   const value: PortListFieldItem = {
     srcPort,
@@ -125,6 +135,10 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
 };
 
 function onFocusIn(e: FocusEvent) {
+  if (!props.port?.srcPort && !props.port?.dstPort) {
+    inputMode.value = 'copyValues';
+  }
+
   if (
     e.relatedTarget &&
     e.relatedTarget instanceof Node &&
@@ -135,6 +149,8 @@ function onFocusIn(e: FocusEvent) {
 }
 
 function onFocusOut(e: FocusEvent) {
+  inputMode.value = 'normal';
+
   if (
     e.relatedTarget &&
     e.relatedTarget instanceof Node &&
