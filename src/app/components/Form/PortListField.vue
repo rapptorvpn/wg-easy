@@ -123,12 +123,14 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
   if (portRangeLength !== otherPortRangeLength) {
     if (key === 'srcPort') {
       if (dstPort) {
-        dstPort.end = dstPort.start + portRangeLength;
+        const end = dstPort.start + portRangeLength;
+        dstPort.end = end < 1 ? 1 : end;
         inputDstValue.value = portFieldItemToFieldString(dstPort);
       }
     } else {
       if (srcPort) {
-        srcPort.end = srcPort.start + portRangeLength;
+        const end = srcPort.start + portRangeLength;
+        srcPort.end = end < 1 ? 1 : end;
         inputSrcValue.value = portFieldItemToFieldString(srcPort);
       }
     }
