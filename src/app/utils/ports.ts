@@ -131,10 +131,10 @@ interface ValidationArg {
 
 const validatePortRangesMatch = (data: ValidationArg): ValidationResult => {
   const valid: boolean =
-    !!data.portRange &&
-    !!data.otherPortRange &&
-    data.portRange.end - data.portRange.start ===
-      data.otherPortRange.end - data.otherPortRange.start;
+    !data.portRange ||
+    (!!data.otherPortRange &&
+      data.portRange.end - data.portRange.start ===
+        data.otherPortRange.end - data.otherPortRange.start);
   const errors = valid
     ? []
     : ['The number of ports in the external and internal ranges must match'];
@@ -239,7 +239,8 @@ const validatePortForwardingIsAvailable = (
 };
 
 const validateStartPortIsLower = (data: ValidationArg): ValidationResult => {
-  const valid = !!data.portRange && data.portRange.start <= data.portRange.end;
+  const valid =
+    data.portRange === undefined || data.portRange.start <= data.portRange.end;
   const errors = valid ? [] : ['Start of port range must be lower than end'];
 
   return { errors, valid };
@@ -249,12 +250,12 @@ const validatePortRangeWithinLimits = (
   data: ValidationArg
 ): ValidationResult => {
   const valid =
-    !!data.portRange &&
-    data.portRange.start >= 1 &&
-    data.portRange.end <= 65535 &&
-    !!data.otherPortRange &&
-    data.otherPortRange.start >= 1 &&
-    data.otherPortRange.end <= 65535;
+    !data.portRange ||
+    (data.portRange.start >= 1 &&
+      data.portRange.end <= 65535 &&
+      !!data.otherPortRange &&
+      data.otherPortRange.start >= 1 &&
+      data.otherPortRange.end <= 65535);
   const errors = valid ? [] : ['Ports must be between 1 - 65535'];
 
   return { errors, valid };
