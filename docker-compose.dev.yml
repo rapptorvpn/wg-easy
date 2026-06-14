@@ -8,6 +8,7 @@ services:
       - temp:/app/.nuxt/
       - temp1:/app/node_modules/
       - /lib/modules:/lib/modules:ro
+      - rapptor_pf_sock:/tmp/rapptor_pf:rw
       # - ./data/:/etc/wireguard
     ports:
       - "51820:51820/udp"
@@ -21,9 +22,7 @@ services:
       - INIT_PORT=51820
       - INIT_USERNAME=testtest
       - INIT_PASSWORD=Qweasdyxcv!2
-      - RAPPTOR_PORT_FORWARDING_URL=http://rapptor-port-forwarding:4010
-    extra_hosts:
-      - "rapptor-port-forwarding:host-gateway"
+      - RAPPTOR_PORT_FORWARDING_SOCK=/tmp/rapptor_pf/rapptor_pf.sock
 
 # folders should be generated inside container
 volumes:
@@ -31,3 +30,5 @@ volumes:
     driver: local
   temp1:
     driver: local
+  rapptor_pf_sock:
+    external: true

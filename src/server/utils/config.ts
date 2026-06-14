@@ -42,7 +42,7 @@ export const WG_ENV = {
 };
 
 export const THIRD_PARTY_ENV = {
-  PORT_FORWARDING_URL: process.env.RAPPTOR_PORT_FORWARDING_URL,
+  RAPPTOR_PORT_FORWARDING_SOCK: process.env.RAPPTOR_PORT_FORWARDING_SOCK,
 };
 
 export const WG_INITIAL_ENV = {
