@@ -4,6 +4,7 @@ import {
 } from '#db/repositories/client/types';
 import type { PortForwardingDefinition } from '#shared/types/portForwarding';
 import { toPortForwardingItems } from '~/utils/ports';
+import { rapptorPortForwardingFetch } from '~~/server/utils/rapptorPortForwardingFetch';
 
 export default definePermissionEventHandler(
   'clients',
@@ -29,25 +30,13 @@ export default definePermissionEventHandler(
       });
     }
 
-    const baseUrl = THIRD_PARTY_ENV.PORT_FORWARDING_URL;
-
-    if (!baseUrl) {
-      throw createError({
-        statusCode: 503,
-        statusMessage: 'Port forwarding service not configured',
-      });
-    }
-
     const updatedEntry: PortForwardingDefinition = {
       ipv4: client.ipv4Address,
       ports: toPortForwardingItems(data.ports),
     };
 
     try {
-      return await $fetch<PortForwardingDefinition[]>(`${baseUrl}/ports/`, {
-        method: 'PUT',
-        body: [updatedEntry],
-      });
+      return rapptorPortForwardingFetch(`/ports/`, 'PUT', [updatedEntry]);
     } catch (e) {
       SERVER_DEBUG('Failed to update port forwarding data: ', e);
       throw createError({
