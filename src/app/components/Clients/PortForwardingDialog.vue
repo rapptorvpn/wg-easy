@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog>
+  <BaseDialog v-model:open="isOpen">
     <template #trigger>
       <slot />
     </template>
@@ -38,6 +38,8 @@
 function portRangesEqual(a: PortRange, b: PortRange): boolean {
   return a.start === b.start && a.end === b.end;
 }
+
+const isOpen = ref<boolean>(false);
 
 function editedPortsEqual(
   a: PortListFieldItem[],
@@ -103,10 +105,12 @@ async function submit() {
     defaultPorts.value = [...editedPorts.value];
   } finally {
     isSubmitingPorts.value = false;
+    isOpen.value = false;
   }
 }
 
 function cancel() {
   editedPorts.value = [...defaultPorts.value];
+  isOpen.value = false;
 }
 </script>
