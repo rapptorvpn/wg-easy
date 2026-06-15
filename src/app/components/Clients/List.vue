@@ -6,12 +6,12 @@
   >
     <ClientCard
       :client="client"
-      :port-forwarding="portForwarding.portForwarding ?? []"
+      :port-forwarding="portForwardingStore.portForwarding ?? []"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 const clientsStore = useClientsStore();
-const portForwarding = usePortForwardingStore();
+const portForwardingStore = usePortForwardingStore();
 </script>
