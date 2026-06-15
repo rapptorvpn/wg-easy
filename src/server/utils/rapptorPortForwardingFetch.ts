@@ -32,10 +32,10 @@ export const rapptorPortForwardingFetch = async <T>(
     });
     return res.body.json();
   } catch (e) {
-    SERVER_DEBUG('Failed to update port forwarding data: ', e);
+    SERVER_DEBUG('Failed to make port forwarding request: ', e);
     throw createError({
       statusCode: 502,
-      statusMessage: 'Failed to update port forwarding data',
+      statusMessage: 'Failed to make port forwarding request: ' + e,
     });
   }
 };
