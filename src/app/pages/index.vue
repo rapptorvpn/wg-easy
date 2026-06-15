@@ -35,8 +35,14 @@
 <script setup lang="ts">
 const globalStore = useGlobalStore();
 const clientsStore = useClientsStore();
-const portForwardingStore = usePortForwardingStore();
-const unavailablePortsStore = useUnavailablePortsStore();
+const config = useRuntimeConfig();
+let portForwardingStore;
+let unavailablePortsStore;
+
+if (config.public.portForwardingEnabled) {
+  portForwardingStore = usePortForwardingStore();
+  unavailablePortsStore = useUnavailablePortsStore();
+}
 
 // TODO?: use hover card to show more detailed info without leaving the page
 // or do something like a accordion
@@ -44,8 +50,8 @@ const unavailablePortsStore = useUnavailablePortsStore();
 const intervalId = ref<NodeJS.Timeout | null>(null);
 
 clientsStore.refresh();
-portForwardingStore.refresh();
-unavailablePortsStore.refresh();
+portForwardingStore?.refresh();
+unavailablePortsStore?.refresh();
 
 onMounted(() => {
   // TODO?: replace with websocket or similar
