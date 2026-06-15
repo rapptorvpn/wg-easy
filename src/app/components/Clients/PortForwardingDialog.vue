@@ -80,15 +80,6 @@ const editedPorts = ref<PortListFieldItem[]>(props.ports);
 const isValid = ref<boolean>(true);
 const isSubmitingPorts = ref<boolean>(false);
 
-// watch(
-//   () => props.ports,
-//   (ports) => {
-//     defaultPorts.value = ports;
-//     editedPorts.value = ports;
-//   },
-//   { deep: true }
-// );
-
 const isDirty = computed(
   () => !editedPortsEqual(editedPorts.value, defaultPorts.value)
 );
