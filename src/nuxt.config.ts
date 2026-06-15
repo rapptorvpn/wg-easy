@@ -24,6 +24,11 @@ export default defineNuxtConfig({
     cookieName: 'theme',
   },
   css: ['~/app.css'],
+  runtimeConfig: {
+    public: {
+      portForwardingEnabled: !!process.env.RAPPTOR_PORT_FORWARDING_SOCK,
+    },
+  },
   i18n: {
     // https://i18n.nuxtjs.org/docs/guide/server-side-translations
     experimental: {

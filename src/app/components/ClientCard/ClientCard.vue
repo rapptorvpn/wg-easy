@@ -38,6 +38,7 @@
         <ClientCardEdit :client="client" />
         <ClientCardQRCode :client="client" />
         <ClientCardPortList
+          v-if="portForwaringVisible"
           :client="client"
           :port-forwarding="portForwarding"
         />
@@ -52,4 +53,6 @@ defineProps<{
   client: LocalClient;
   portForwarding: PortForwardingDefinition[];
 }>();
+const config = useRuntimeConfig();
+const portForwaringVisible: boolean = config.public.portForwardingEnabled;
 </script>
