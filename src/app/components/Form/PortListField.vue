@@ -13,6 +13,7 @@
         {{ $t('client.portExternal') }}
       </span>
       <input
+        ref="inputSrcEl"
         :value="inputSrcValue"
         type="text"
         inputmode="numeric"
@@ -33,6 +34,7 @@
         {{ $t('client.portInternal') }}
       </span>
       <input
+        ref="inputDstEl"
         :value="inputDstValue"
         type="text"
         inputmode="numeric"
@@ -97,6 +99,7 @@ const inputDstValue = ref<string>(
 
 const rootRef = ref<HTMLDivElement | null>(null);
 const inputMode = ref<'copyValues' | 'normal'>('normal');
+const inputDstEl = ref<HTMLInputElement | null>(null);
 
 const emit = defineEmits<{
   blur: [];
@@ -108,30 +111,53 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
   const raw = sanitizePortInput((event.target as HTMLInputElement).value);
   const portRange = fieldStringToPortRange(raw);
 
-  let srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
+  const srcPort = key === 'srcPort' ? portRange : props.port?.srcPort;
   let dstPort = key === 'dstPort' ? portRange : props.port?.dstPort;
   const inputValue = key === 'srcPort' ? inputSrcValue : inputDstValue;
-  const otherPortRange = key === 'srcPort' ? dstPort : srcPort;
 
   inputValue.value = raw;
 
-  const portRangeLength: number =
-    (portRange?.end ?? 0) - (portRange?.start ?? 0);
-  const otherPortRangeLength: number =
-    (otherPortRange?.end ?? 0) - (otherPortRange?.start ?? 0);
+  const srcPortRange: number = (srcPort?.end ?? 0) - (srcPort?.start ?? 0);
+  const dstPortRange: number = (dstPort?.end ?? 0) - (dstPort?.start ?? 0);
 
-  if (portRangeLength !== otherPortRangeLength) {
+  if (srcPortRange !== dstPortRange) {
     if (key === 'srcPort') {
       if (dstPort) {
-        const end = dstPort.start + portRangeLength;
+        const end = dstPort.start + srcPortRange;
         dstPort.end = end < 1 ? 1 : end;
         inputDstValue.value = portFieldItemToFieldString(dstPort);
       }
     } else {
-      if (srcPort) {
-        const end = srcPort.start + portRangeLength;
-        srcPort.end = end < 1 ? 1 : end;
-        inputSrcValue.value = portFieldItemToFieldString(srcPort);
+      if (dstPort) {
+        let selectionStart = inputDstEl.value?.selectionStart;
+        let selectionEnd = inputDstEl.value?.selectionEnd;
+        const startRangeChanged = dstPort.start !== props.port?.dstPort?.start;
+
+        if (startRangeChanged) {
+          dstPort.end = dstPort?.start + srcPortRange;
+        } else {
+          if (dstPort?.end - srcPortRange > 1) {
+            dstPort.start = dstPort?.end - srcPortRange;
+          } else {
+            dstPort.start = 1;
+          }
+        }
+
+        const inputValue = portFieldItemToFieldString(dstPort);
+
+        if (!startRangeChanged && selectionStart && selectionEnd) {
+          selectionStart +=
+            inputValue.length - (inputDstEl.value?.value.length ?? 0);
+          selectionEnd +=
+            inputValue.length - (inputDstEl.value?.value.length ?? 0);
+        }
+
+        inputDstValue.value = inputValue;
+        if (selectionStart && selectionEnd) {
+          setTimeout(() => {
+            inputDstEl.value?.setSelectionRange(selectionStart, selectionEnd);
+          }, 0);
+        }
       }
     }
   }
@@ -140,9 +166,6 @@ const onPortInput = (event: Event, key: 'dstPort' | 'srcPort') => {
     if (key === 'srcPort') {
       dstPort = srcPort;
       inputDstValue.value = portFieldItemToFieldString(dstPort);
-    } else {
-      srcPort = dstPort;
-      inputSrcValue.value = portFieldItemToFieldString(srcPort);
     }
   }
 
