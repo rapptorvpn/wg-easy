@@ -62,20 +62,21 @@ const portForwardingItemsWithForwardingFields = computed(
         return portForwardingItem.ipv4 === props.ipv4;
       }
     );
+    const portForwardingItem = {
+      ipv4: props.ipv4,
+      ports: toPortForwardingItems(
+        portForwarding.value.filter((port) => {
+          return !!port;
+        })
+      ),
+    };
     return props.portForwardingItems[forwardingFieldsIndex]
       ? [
           ...props.portForwardingItems.slice(0, forwardingFieldsIndex),
-          {
-            ...props.portForwardingItems[forwardingFieldsIndex],
-            ports: toPortForwardingItems(
-              portForwarding.value.filter((port) => {
-                return !!port;
-              })
-            ),
-          },
+          portForwardingItem,
           ...props.portForwardingItems.slice(forwardingFieldsIndex + 1),
         ]
-      : props.portForwardingItems;
+      : [...props.portForwardingItems, portForwardingItem];
   }
 );
 
