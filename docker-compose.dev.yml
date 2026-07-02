@@ -22,6 +22,7 @@ services:
       - INIT_PORT=51820
       - INIT_USERNAME=testtest
       - INIT_PASSWORD=Qweasdyxcv!2
+      - PORT_FORWARDING_ENABLED=true
       - RAPPTOR_PORT_FORWARDING_SOCK=/tmp/rapptor_pf/rapptor_pf.sock
 
 # folders should be generated inside container

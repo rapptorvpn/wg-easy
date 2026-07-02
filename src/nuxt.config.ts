@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   css: ['~/app.css'],
   runtimeConfig: {
     public: {
-      portForwardingEnabled: !!process.env.RAPPTOR_PORT_FORWARDING_SOCK,
+      portForwardingEnabled: process.env.PORT_FORWARDING_ENABLED === 'true',
     },
   },
   i18n: {
