@@ -1,5 +1,6 @@
 FROM docker.io/library/node:krypton-alpine AS build
 WORKDIR /app
+ARG PORT_FORWARDING_ENABLED
 
 # update corepack
 RUN npm install --global corepack@latest
