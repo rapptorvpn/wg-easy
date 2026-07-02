@@ -64,38 +64,294 @@ describe('portFieldItemToFieldString', () => {
 });
 
 describe('portRangeIsValid()', () => {
-  test('Returns false if start is greater than end', () => {
-    expect(portRangeIsValid({ start: 124, end: 123 }, 'tcp', [])).toBe(false);
+  const portForwarding: PortForwardingDefinition[] = [];
+  // const portRange: PortRange | undefined = { start: 100, end: 100 };
+  const type: PortListType = 'tcp';
+  const unavailablePorts: PortDefinition[] = [];
+  const ipv4: string = '1.2.3.4';
+
+  //   validatePortRangesMatch,
+  //   validatePortsAreAvailable,
+  //   validatePortForwardingIsAvailable,
+  //   validateStartPortIsLower,
+  //   validatePortRangeWithinLimits
+
+  test('Returns error if start is greater than end', () => {
+    expect(
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                dstPort: { start: 124, end: 123 },
+                srcPort: { start: 124, end: 123 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 124, end: 123 },
+        { start: 124, end: 123 },
+        type,
+        unavailablePorts,
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: ['Start of port range must be lower than end'],
+    });
   });
-  test('Returns false if start or end are out of range', () => {
-    expect(portRangeIsValid({ start: 124, end: 66000 }, 'tcp', [])).toBe(false);
-    expect(portRangeIsValid({ start: 66000, end: 67000 }, 'tcp', [])).toBe(
-      false
-    );
+  test('Returns error if start or end are out of range', () => {
+    expect(
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                dstPort: { start: 124, end: 123 },
+                srcPort: { start: 124, end: 123 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 124, end: 66000 },
+        { start: 124, end: 66000 },
+        type,
+        unavailablePorts,
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: ['Ports must be between 1 - 65535'],
+    });
+    expect(
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                dstPort: { start: 66000, end: 67000 },
+                srcPort: { start: 66000, end: 67000 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 66000, end: 67000 },
+        { start: 66000, end: 67000 },
+        type,
+        unavailablePorts,
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: ['Ports must be between 1 - 65535'],
+    });
   });
-  test('Returns false if start or end overlap with unavailable ports', () => {
+  test('Returns error if start or end overlap with unavailable ports', () => {
     expect(
-      portRangeIsValid({ start: 1234, end: 1234 }, 'tcp', [
-        { port: 1234, type: 'tcp' },
-      ])
-    ).toBe(false);
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                dstPort: { start: 1234, end: 1234 },
+                srcPort: { start: 1234, end: 1234 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 1234, end: 1234 },
+        { start: 1234, end: 1234 },
+        type,
+        [{ port: 1234, type: 'tcp' }],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: ['Port 1234 (tcp) is not available'],
+    });
     expect(
-      portRangeIsValid({ start: 1230, end: 1240 }, 'tcp', [
-        { port: 1234, type: 'tcp' },
-      ])
-    ).toBe(false);
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                dstPort: { start: 1230, end: 1240 },
+                srcPort: { start: 1230, end: 1240 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 1230, end: 1240 },
+        { start: 1230, end: 1240 },
+        type,
+        [
+          { port: 1232, type: 'tcp' },
+          { port: 1234, type: 'tcp' },
+          { port: 1236, type: 'tcp' },
+        ],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: ['Ports 1232 (tcp), 1234 (tcp) & 1236 (tcp) are not available'],
+    });
   });
-  test('Returns true if start or end overlap with unavailable ports of different types', () => {
+  test('Returns error if port forwarding overlaps with already used rules', () => {
     expect(
-      portRangeIsValid({ start: 1234, end: 1234 }, 'udp', [
-        { port: 1234, type: 'tcp' },
-      ])
-    ).toBe(true);
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1,2,3,4',
+            ports: [
+              {
+                srcPort: { start: 1234, end: 1234 },
+                dstPort: { start: 1234, end: 1234 },
+                type: 'udp',
+              },
+              {
+                srcPort: { start: 1234, end: 1234 },
+                dstPort: { start: 1234, end: 1234 },
+                type: 'udp',
+              },
+            ],
+          },
+        ],
+        { start: 1230, end: 1240 },
+        { start: 1230, end: 1240 },
+        'udp',
+        [],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: [
+        'Ports 1234 (udp) & 1234 (udp) are used in other port forwarding rules',
+      ],
+    });
     expect(
-      portRangeIsValid({ start: 1230, end: 1240 }, 'udp', [
-        { port: 1234, type: 'tcp' },
-      ])
-    ).toBe(true);
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1.2.3.4',
+            ports: [
+              {
+                srcPort: { start: 1233, end: 1235 },
+                dstPort: { start: 1233, end: 1235 },
+                type: 'udp',
+              },
+              {
+                srcPort: { start: 1233, end: 1235 },
+                dstPort: { start: 1233, end: 1235 },
+                type: 'tcp',
+              },
+              {
+                srcPort: { start: 1230, end: 1240 },
+                dstPort: { start: 1230, end: 1240 },
+                type: 'tcp',
+              },
+            ],
+          },
+        ],
+        { start: 1230, end: 1240 },
+        { start: 1230, end: 1240 },
+        'tcp',
+        [],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: [
+        'Ports 1233-1235 (tcp/udp) & 1230-1240 (tcp) are used in other port forwarding rules',
+      ],
+    });
+    expect(
+      portRangeIsValid(
+        [
+          {
+            ipv4: '1,2,3,4',
+            ports: [
+              {
+                srcPort: { start: 1233, end: 1235 },
+                dstPort: { start: 1236, end: 1236 },
+                type: 'udp',
+              },
+              {
+                srcPort: { start: 1234, end: 1234 },
+                dstPort: { start: 1234, end: 1234 },
+                type: 'udp',
+              },
+            ],
+          },
+        ],
+        undefined,
+        undefined,
+        'udp',
+        [],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: true,
+      errors: [],
+    });
+  });
+  test("Returns error if source and destination port ranges don't match", () => {
+    expect(
+      portRangeIsValid(
+        portForwarding,
+        { start: 1000, end: 1010 },
+        { start: 2000, end: 2005 },
+        type,
+        [],
+        ipv4
+      )
+    ).toStrictEqual({
+      valid: false,
+      errors: [
+        'The number of ports in the external and internal ranges must match',
+      ],
+    });
+  });
+  test('Returns no error if start or end overlap with unavailable ports of different types', () => {
+    expect(
+      portRangeIsValid(
+        portForwarding,
+        { start: 1234, end: 1234 },
+        { start: 1234, end: 1234 },
+        'udp',
+        [{ port: 1234, type: 'tcp' }],
+        ipv4
+      )
+    ).toStrictEqual({ valid: true, errors: [] });
+    expect(
+      portRangeIsValid(
+        portForwarding,
+        { start: 1230, end: 1240 },
+        { start: 1230, end: 1240 },
+        'udp',
+        [{ port: 1234, type: 'tcp' }],
+        ipv4
+      )
+    ).toStrictEqual({ valid: true, errors: [] });
+    expect(
+      portRangeIsValid(
+        portForwarding,
+        undefined,
+        undefined,
+        'udp',
+        [{ port: 1234, type: 'tcp' }],
+        ipv4
+      )
+    ).toStrictEqual({ valid: true, errors: [] });
   });
 });
 

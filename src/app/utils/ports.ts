@@ -129,7 +129,7 @@ interface ValidationArg {
   ipv4: string;
 }
 
-const validatePortRangesMatch = (data: ValidationArg): ValidationResult => {
+const validatePortRangesMatch: Validator = (data) => {
   const valid: boolean =
     !data.portRange ||
     (!!data.otherPortRange &&
@@ -142,20 +142,20 @@ const validatePortRangesMatch = (data: ValidationArg): ValidationResult => {
   return { errors, valid };
 };
 
-const getPortRangeStr = (port: PortRange, type: PortType) => {
+const getPortRangeStr = (port: PortRange | undefined, type: PortListType) => {
   const numericRange =
-    port.end !== port.start
-      ? `${port.start}-${port.end}`
-      : port.start.toString();
-  return `${numericRange} (${type})`;
+    port?.end !== port?.start
+      ? `${port?.start}-${port?.end}`
+      : port?.start.toString();
+  return `${numericRange} (${type === 'both' ? 'tcp/udp' : type})`;
 };
 
 const formatUnavailablePortsStr = (
-  unavailablePorts: { port: PortRange; type: PortType }[]
+  unavailablePorts: { port: PortRange | undefined; type: PortListType }[]
 ): string => {
   const allPortsButLast: string[] = unavailablePorts.reduce<string[]>(
     (acc, unavailablePort, i) => {
-      if (i !== unavailablePorts.length - 1) {
+      if (i !== unavailablePorts.length - 1 && unavailablePort.port) {
         acc.push(getPortRangeStr(unavailablePort.port, unavailablePort.type));
       }
       return acc;
@@ -163,12 +163,13 @@ const formatUnavailablePortsStr = (
     []
   );
   const lastPort = unavailablePorts[unavailablePorts.length - 1];
+  const allPortsButLastStr = allPortsButLast.join(', ');
   return lastPort
-    ? `${allPortsButLast.join(', ')} ${allPortsButLast.length >= 1 ? '& ' : ''}${getPortRangeStr(lastPort.port, lastPort.type)}`
+    ? `${allPortsButLastStr ? allPortsButLastStr + ' ' : ''}${allPortsButLast.length >= 1 ? '& ' : ''}${getPortRangeStr(lastPort.port, lastPort.type)}`
     : '';
 };
 
-const validatePortsAreAvailable = (data: ValidationArg): ValidationResult => {
+const validatePortsAreAvailable: Validator = (data) => {
   const conflictingUnavailablePorts = data.unavailablePorts.filter(
     (unavailablePort) => {
       return (
@@ -197,30 +198,27 @@ const validatePortsAreAvailable = (data: ValidationArg): ValidationResult => {
   return { errors, valid };
 };
 
-const validatePortForwardingIsAvailable = (
-  data: ValidationArg
-): ValidationResult => {
-  const conflictingPortRanges = data.portForwarding.reduce<
-    PortForwardingItem[]
-  >((acc, portForwardingDef) => {
-    portForwardingDef.ports.forEach((portRange) => {
-      if (
-        data.portRange &&
-        !(
-          portRange.srcPort.start === data.portRange.start &&
-          portRange.srcPort.end === data.portRange.end &&
-          (portRange.type === data.type || data.type === 'both')
-        ) &&
-        portRangesOverlap(portRange.srcPort, data.portRange) &&
-        (portRange.type === data.type || data.type === 'both')
-      ) {
-        acc.push(portRange);
-      }
-    });
-    return acc;
-  }, []);
+const validatePortForwardingIsAvailable: Validator = (data) => {
+  const conflictingPortRanges = data.portForwarding.reduce<PortListFieldItem[]>(
+    (acc, portForwardingDef) => {
+      toPortListFieldItem(portForwardingDef.ports).forEach((portRange) => {
+        if (
+          data.portRange &&
+          portRange.srcPort &&
+          portRangesOverlap(portRange.srcPort, data.portRange) &&
+          (portRange.type === data.type ||
+            data.type === 'both' ||
+            portRange.type === 'both')
+        ) {
+          acc.push(portRange);
+        }
+      });
+      return acc;
+    },
+    []
+  );
 
-  const valid = conflictingPortRanges.length === 0;
+  const valid = conflictingPortRanges.length < 2;
 
   const unavailablePortsString = formatUnavailablePortsStr(
     conflictingPortRanges.map((port) => ({
@@ -232,13 +230,17 @@ const validatePortForwardingIsAvailable = (
   const errors = valid
     ? []
     : [
-        `Port${conflictingPortRanges.length === 1 ? '' : 's'} ${unavailablePortsString} ${conflictingPortRanges.length === 1 ? 'is' : 'are'} used in other port forwarding rules`,
+        `Port${
+          conflictingPortRanges.length === 1 ? '' : 's'
+        } ${unavailablePortsString} ${
+          conflictingPortRanges.length === 1 ? 'is' : 'are'
+        } used in other port forwarding rules`,
       ];
 
   return { errors, valid };
 };
 
-const validateStartPortIsLower = (data: ValidationArg): ValidationResult => {
+const validateStartPortIsLower: Validator = (data) => {
   const valid =
     data.portRange === undefined || data.portRange.start <= data.portRange.end;
   const errors = valid ? [] : ['Start of port range must be lower than end'];
@@ -246,9 +248,7 @@ const validateStartPortIsLower = (data: ValidationArg): ValidationResult => {
   return { errors, valid };
 };
 
-const validatePortRangeWithinLimits = (
-  data: ValidationArg
-): ValidationResult => {
+const validatePortRangeWithinLimits: Validator = (data) => {
   const valid =
     !data.portRange ||
     (data.portRange.start >= 1 &&
