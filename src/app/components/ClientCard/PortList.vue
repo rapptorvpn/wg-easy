@@ -40,9 +40,9 @@ const unavailablePorts = ref<PortDefinition[]>(
   unavailablePortsStore.unavailablePorts ?? []
 );
 
-async function onSubmit(newPorts: PortListFieldItem[]) {
+async function onSubmit(newPorts: (PortListFieldItem | undefined)[]) {
   newPorts = newPorts.filter(
-    (portListField) => portListField.srcPort && portListField.dstPort
+    (portListField) => portListField?.srcPort && portListField.dstPort
   );
   try {
     await $fetch<PortForwardingDefinition[]>(
@@ -55,7 +55,7 @@ async function onSubmit(newPorts: PortListFieldItem[]) {
     portForwardingStore.setPortForwarding([
       {
         ipv4: props.client.ipv4Address,
-        ports: toPortForwardingItems(newPorts),
+        ports: toPortForwardingItems(newPorts.filter((i) => i !== undefined)),
       },
     ]);
   } catch (e) {

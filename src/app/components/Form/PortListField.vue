@@ -1,11 +1,11 @@
 <template>
   <div
     ref="rootRef"
-    class="flex w-full items-end gap-2"
+    class="grid w-full grid-cols-[1fr_1fr_1fr_2.8rem] items-end gap-2"
     @focusout="onFocusOut"
     @focusin="onFocusIn"
   >
-    <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <div class="grid-1 grid-col grid min-w-0 gap-1">
       <span
         v-if="props.showLabels"
         class="text-xs text-gray-500 dark:text-neutral-400"
@@ -64,6 +64,14 @@
         <option value="udp">UDP</option>
       </select>
     </div>
+    <a
+      v-if="props.showDelete"
+      class="flex justify-center rounded bg-gray-100 p-3 align-middle transition hover:bg-red-800 hover:text-white dark:bg-neutral-600 dark:text-neutral-300 dark:hover:bg-red-800 dark:hover:text-white"
+      href="#"
+      @click="handleDeleteClick"
+    >
+      <IconsDelete class="w-5" />
+    </a>
   </div>
   <template v-for="errorStr in props.validation?.errors" :key="errorStr">
     <div class="flex min-w-0 flex-1 flex-col">
@@ -82,11 +90,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { ValidationResult } from '~/utils/ports';
-
 const props = defineProps<{
   validation: ValidationResult | undefined;
   port: PortListFieldItem | undefined;
+  showDelete: boolean;
   showLabels: boolean;
 }>();
 
@@ -101,9 +108,15 @@ const rootRef = ref<HTMLDivElement | null>(null);
 const inputMode = ref<'copyValues' | 'normal'>('normal');
 const inputDstEl = ref<HTMLInputElement | null>(null);
 
+const handleDeleteClick = (e: PointerEvent) => {
+  e.preventDefault();
+  emit('delete');
+};
+
 const emit = defineEmits<{
   blur: [];
   change: [portDef: PortListFieldItem | undefined];
+  delete: [];
   focus: [];
 }>();
 

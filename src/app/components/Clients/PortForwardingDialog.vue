@@ -1,5 +1,9 @@
 <template>
-  <BaseDialog v-model:open="isOpen">
+  <BaseDialog
+    v-model:open="isOpen"
+    max-width="max-w-lg"
+    width="w-[calc(100vw_-_2rem)]"
+  >
     <template #trigger>
       <slot />
     </template>
@@ -42,15 +46,15 @@ function portRangesEqual(a: PortRange, b: PortRange): boolean {
 const isOpen = ref<boolean>(false);
 
 function editedPortsEqual(
-  a: PortListFieldItem[],
-  b: PortListFieldItem[]
+  a: (PortListFieldItem | undefined)[],
+  b: (PortListFieldItem | undefined)[]
 ): boolean {
   return (
     a.length === b.length &&
     a.every(
       (item, i) =>
-        item.srcPort &&
-        item.dstPort &&
+        item?.srcPort &&
+        item?.dstPort &&
         b[i]?.srcPort &&
         b[i]?.dstPort &&
         portRangesEqual(item.srcPort, b[i].srcPort) &&
@@ -63,7 +67,9 @@ function editedPortsEqual(
 const props = withDefaults(
   defineProps<{
     unavailablePorts?: PortDefinition[];
-    onSubmit?: (ports: PortListFieldItem[]) => void | Promise<void>;
+    onSubmit?: (
+      ports: (PortListFieldItem | undefined)[]
+    ) => void | Promise<void>;
     ports?: PortListFieldItem[];
     portForwardingItems: PortForwardingDefinition[];
     ipv4: string;
@@ -75,8 +81,8 @@ const props = withDefaults(
   }
 );
 
-const defaultPorts = ref<PortListFieldItem[]>(props.ports);
-const editedPorts = ref<PortListFieldItem[]>(props.ports);
+const defaultPorts = ref<(PortListFieldItem | undefined)[]>(props.ports);
+const editedPorts = ref<(PortListFieldItem | undefined)[]>(props.ports);
 const isValid = ref<boolean>(true);
 const isSubmitingPorts = ref<boolean>(false);
 

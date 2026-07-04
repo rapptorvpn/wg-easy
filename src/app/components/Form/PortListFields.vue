@@ -13,6 +13,8 @@
           :validation="validation[i]"
           :show-labels="i === 0"
           :port="field"
+          :show-delete="i !== forwardingFields.length - 1"
+          @delete="onPortDelete(i)"
           @change="onPortChange($event, i)"
           @blur="onPortBlur"
           @focus="onPortFocus(i)"
@@ -110,12 +112,15 @@ const onPortChange = (
 };
 
 const onPortBlur = () => {
-  console.log('onPortBlur');
   editFieldIndex.value = undefined;
 };
 
+const onPortDelete = (index: number) => {
+  editFieldIndex.value = undefined;
+  portForwarding.value[index] = undefined;
+};
+
 const onPortFocus = (index: number) => {
-  console.log('onPortFocus', index);
   editFieldIndex.value = index;
 };
 
