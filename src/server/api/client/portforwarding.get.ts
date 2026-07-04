@@ -1,3 +1,8 @@
+import {
+  createError,
+  definePermissionEventHandler,
+  SERVER_DEBUG,
+} from '#imports';
 import { rapptorPortForwardingFetch } from '~~/server/utils/rapptorPortForwardingFetch';
 
 export default definePermissionEventHandler('clients', 'custom', async () => {

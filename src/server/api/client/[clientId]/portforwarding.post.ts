@@ -2,6 +2,15 @@ import {
   ClientGetSchema,
   ClientPortForwardingSchema,
 } from '#db/repositories/client/types';
+import {
+  createError,
+  Database,
+  definePermissionEventHandler,
+  getValidatedRouterParams,
+  readValidatedBody,
+  SERVER_DEBUG,
+  validateZod,
+} from '#imports';
 import type { PortForwardingDefinition } from '#shared/types/portForwarding';
 import { toPortForwardingItems } from '~/utils/ports';
 import { rapptorPortForwardingFetch } from '~~/server/utils/rapptorPortForwardingFetch';
