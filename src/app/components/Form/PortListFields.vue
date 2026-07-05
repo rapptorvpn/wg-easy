@@ -95,11 +95,13 @@ const onPortChange = (
   index: number
 ) => {
   if (portDef) {
-    if (index > portForwarding.value.length - 1) {
-      portForwarding.value.push(portDef);
-    } else {
-      portForwarding.value[index] = portDef;
-    }
+    const newPortForwarding = [
+      ...portForwarding.value.slice(0, index),
+      portDef,
+      ...portForwarding.value.slice(index + 1),
+    ];
+
+    portForwarding.value = newPortForwarding;
   }
 };
 
