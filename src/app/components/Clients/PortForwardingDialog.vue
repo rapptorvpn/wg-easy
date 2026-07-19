@@ -106,8 +106,13 @@ async function submit() {
   }
 }
 
+watch(isOpen, (isOpen) => {
+  if (!isOpen) {
+    editedPorts.value = [...defaultPorts.value];
+  }
+});
+
 function cancel() {
-  editedPorts.value = [...defaultPorts.value];
   isOpen.value = false;
 }
 </script>
